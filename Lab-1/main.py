@@ -1,3 +1,5 @@
+import random
+
 class Grammar:
     def __init__(self):
         self.VN = {'S', 'I', 'J', 'K'}
@@ -22,6 +24,9 @@ class Grammar:
                 return ''.join(expanded_results)
         return expand(self.S)
 
+    def to_finite_automaton(self):
+        return FiniteAutomaton(self)
+
 
 
 class FiniteAutomaton:
@@ -35,18 +40,46 @@ class FiniteAutomaton:
         self.final_states = {'F'}
 
 
-def build_transitions(self, grammar):
-    transitions = {}
-    for state in grammar.VN:
-        transitions[state] = {}
-    
-        for production in grammar.P[state]:
-            # it has in a single terminal symbol
-            if len(production) == 1 and production[0] in grammar.VT:
-                transitions[state][production[0]] = 'F'
-            
-            # it has a terminal symbol + a non-terminal symbol
-            elif len(production) == 2:
-                # we are for sure that it's a right-linear grammar 
-                transitions[state][production[0]] = production[1]
-    return transitions
+    def build_transitions(self, grammar):
+        transitions = {}
+        for state in grammar.VN:
+            transitions[state] = {}
+        
+            for production in grammar.P[state]:
+                # it has in a single terminal symbol
+                if len(production) == 1 and production[0] in grammar.VT:
+                    transitions[state][production[0]] = 'F'
+                
+                # it has a terminal symbol + a non-terminal symbol
+                elif len(production) == 2:
+                    # for sure that it's a right-linear grammar 
+                    transitions[state][production[0]] = production[1]
+        return transitions
+
+    def string_in_language(self, input_string):
+        current_state = self.start_state
+        for symbol in input_string:
+            if symbol in self.transitions[current_state]:
+                current_state = self.transitions[current_state][symbol]
+            else:
+                return False
+        return current_state in self.final_states
+
+
+def main():
+    grammar = Grammar()
+    print("Generated strings:")
+    for aux in range(5):
+        print(grammar.generate_string())
+    fa = grammar.to_finite_automaton()
+
+    test_strings = ['cbncm', 'cfbncm', 'ce', 'cbncbncm', 'cfefbncm']
+    print("\nChecking if strings belong to the language:")
+    for s in test_strings:
+        is_true = fa.string_in_language(s)
+        print(f"'{s}' belongs to the language: {is_true}")
+
+
+
+if __name__ == "__main__":
+    main()

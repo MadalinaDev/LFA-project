@@ -59,6 +59,8 @@ class FiniteAutomaton:
     def string_in_language(self, input_string):
         current_state = self.start_state
         for symbol in input_string:
+            if current_state == 'F':
+                return False
             if symbol in self.transitions[current_state]:
                 current_state = self.transitions[current_state][symbol]
             else:

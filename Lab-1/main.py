@@ -1,6 +1,7 @@
 import random
 
 class Grammar:
+    # defining in the constructor my terminals, non-terminals, production rules, and initial state S
     def __init__(self):
         self.VN = {'S', 'I', 'J', 'K'}
         self.VT = {'a', 'b', 'c', 'e', 'n', 'f', 'm'}
@@ -12,6 +13,7 @@ class Grammar:
         }
         self.S = 'S'
 
+    # using recursion to derive randomly words based on the grammar rules
     def generate_string(self):
         def expand(symbol):
             if symbol in self.VT:
@@ -24,12 +26,14 @@ class Grammar:
                 return ''.join(expanded_results)
         return expand(self.S)
 
+    # transforming my grammar into a finite automaton
     def to_finite_automaton(self):
         return FiniteAutomaton(self)
 
 
 
 class FiniteAutomaton:
+    # defining  in the constructor my finite automaton components
     def __init__(self, grammar):
         self.states = grammar.VN.union({'F'})
         self.alphabet = grammar.VT
@@ -40,6 +44,7 @@ class FiniteAutomaton:
         self.final_states = {'F'}
 
 
+    # to build transitions, implementing a dictionary of states and transitions
     def build_transitions(self, grammar):
         transitions = {}
         for state in grammar.VN:
@@ -56,11 +61,12 @@ class FiniteAutomaton:
                     transitions[state][production[0]] = production[1]
         return transitions
 
+    # method to checking if my word is in the language 
     def string_in_language(self, input_string):
         current_state = self.start_state
         for symbol in input_string:
             if current_state == 'F':
-                return False
+                return True
             if symbol in self.transitions[current_state]:
                 current_state = self.transitions[current_state][symbol]
             else:

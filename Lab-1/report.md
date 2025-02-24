@@ -84,7 +84,7 @@ def __form_transitions(self, grammar):
                 elif len(production) == 2:
                     # transitioning to another state for terminal + non-terminal
                     self.transitions[state].setdefault(production[0], []).append(production[1])
-```
+
 8. In `def string_in_language(self, input_string):` method, if I reach the final state F using BFS search, I return true, otherwise false. I store initial state in a queue and go through all possible paths of words that can be creaetd.
 9. In function main I generate 5 random string using my grammar definitions and method. I then chekc 5 random inputs from my tests array and check if they exist in my language or not. And dispaly this on the screen
 

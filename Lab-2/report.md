@@ -143,42 +143,12 @@ NDFA-to-DFA Conversion
 This method uses the subset construction algorithm to convert an NDFA into a DFA.
 
 ```
-    # Convert NDFA to DFA using subset construction
-    def convert_to_dfa(self):
-        if self.is_deterministic():
-            return self
-
-        def move(states, symbol):
+    def move(states, symbol):
             result = set()
             for t in self.transitions:
                 if t["state"] in states and t["symbol"] == symbol:
                     result.add(t["to"])
             return result
-
-        start = frozenset([self.initial_state])
-        unprocessed = [start]
-        state_mapping = {start: "q0"}
-        dfa_transitions = []
-        dfa_states = [start]
-
-        while unprocessed:
-            current = unprocessed.pop(0)
-            for symbol in self.alphabet:
-                nxt = frozenset(move(current, symbol))
-                if nxt:
-                    if nxt not in state_mapping:
-                        state_mapping[nxt] = f"q{len(state_mapping)}"
-                        unprocessed.append(nxt)
-                        dfa_states.append(nxt)
-                    dfa_transitions.append({
-                        "state": state_mapping[current],
-                        "symbol": symbol,
-                        "to": state_mapping[nxt]
-                    })
-
-        dfa_state_names = set(state_mapping.values())
-        dfa_final_states = {state_mapping[s] for s in dfa_states if any(st in self.final_states for st in s)}
-        return FiniteAutomaton(dfa_state_names, self.alphabet, "q0", dfa_final_states, dfa_transitions)
 ```
 
 
@@ -238,9 +208,6 @@ def main():
     print("\ngrammar classification:")
     print(rg.return_grammar_type())
 
-if __name__ == "__main__":
-    main()
-
 ```
 
 The outputs of the problem are as follows:
@@ -248,6 +215,12 @@ The outputs of the problem are as follows:
 ![alt text](image.png)
 <br>
 The screenshot depicts the output of the problem. Firstly the derived grammmar from the automata provided in variant 6 of the lab. The NFA transitions are depicted as well as the check for determistism that says that the FA is not deterministic. Then the conversion of NFA to DFA is displayed and in the end the grammar classification is assessed as regular gramamr (type 3).
+
+<br>
+The results of the problem can be verified by checking the graphical representation of the NFA, buidling the transiitons table, converting it to DFA, and visually representing in on paper. We observe that the results match, therefore the implementation of the laboratory work program is correct and compelte:
+<br>
+![alt text](image-1.png)
+<br>
 
 ## Conclusions
 This laboratory work at Languages and Formal Automata explores the concept of finite automata and determinism by examining how non-deterministic behavior can be identified and resolved. The implementation verifies that each state-symbol pair has a unique transition using the is_deterministic() method. The lab then applies the subset construction algorithm to transform a non-deterministic finite automaton into a deterministic one, simplifying further analysis and implementation. In addition, the automaton is converted into a regular grammar by generating production rules through the __get_productions() method. The resulting grammar is subsequently verified as Type‑3 using the return_grammar_type() method. This structured approach illustrates the practical application of theoretical concepts in formal languages and automata theory. Overall, the lab provides a clear demonstration of how these concepts can be implemented in real-world scenarios.

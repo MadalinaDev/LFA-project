@@ -243,6 +243,9 @@ if __name__ == "__main__":
 
 ```
 
+The outputs of the problem are as follows:
+![alt text](image.png)
+The screenshot depicts the output of the problem. Firstly the derived grammmar from the automata provided in variant 6 of the lab. The NFA transitions are depicted as well as the check for determistism that says that the FA is not deterministic. Then the conversion of NFA to DFA is displayed and in the end the grammar classification is assessed as regular gramamr (type 3).
 
 ## Conclusions
 This laboratory work at Languages and Formal Automata explores the concept of finite automata and determinism by examining how non-deterministic behavior can be identified and resolved. The implementation verifies that each state-symbol pair has a unique transition using the is_deterministic() method. The lab then applies the subset construction algorithm to transform a non-deterministic finite automaton into a deterministic one, simplifying further analysis and implementation. In addition, the automaton is converted into a regular grammar by generating production rules through the __get_productions() method. The resulting grammar is subsequently verified as Type‑3 using the return_grammar_type() method. This structured approach illustrates the practical application of theoretical concepts in formal languages and automata theory. Overall, the lab provides a clear demonstration of how these concepts can be implemented in real-world scenarios.

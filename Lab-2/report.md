@@ -217,7 +217,7 @@ The outputs of the problem are as follows:
 The screenshot depicts the output of the problem. Firstly the derived grammmar from the automata provided in variant 6 of the lab. The NFA transitions are depicted as well as the check for determistism that says that the FA is not deterministic. Then the conversion of NFA to DFA is displayed and in the end the grammar classification is assessed as regular gramamr (type 3).
 
 <br>
-The results of the problem can be verified by checking the graphical representation of the NFA, buidling the transiitons table, converting it to DFA, and visually representing in on paper. We observe that the results match, therefore the implementation of the laboratory work program is correct and compelte:
+The results of the problem can be verified by checking the graphical representation of the NFA, buidling the transitions table, converting it to DFA, and visually representing in on paper. We observe that the results match, therefore the implementation of the laboratory work program is correct and complete:
 <br>
 ![alt text](image-1.png)
 <br>

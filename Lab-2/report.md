@@ -218,7 +218,7 @@ The screenshot depicts the output of the problem. Firstly the derived grammmar f
 
 <br>
 The results of the problem can be verified by checking the graphical representation of the NFA, buidling the transitions table, converting it to DFA, and visually representing in on paper. We observe that the results match, therefore the implementation of the laboratory work program is correct and complete:
-![alt text](image1.png)
+![alt text](verification.png)
 
 ## Conclusions
 This laboratory work at Languages and Formal Automata explores the concept of finite automata and determinism by examining how non-deterministic behavior can be identified and resolved. The implementation verifies that each state-symbol pair has a unique transition using the is_deterministic() method. The lab then applies the subset construction algorithm to transform a non-deterministic finite automaton into a deterministic one, simplifying further analysis and implementation. In addition, the automaton is converted into a regular grammar by generating production rules through the __get_productions() method. The resulting grammar is subsequently verified as Type‑3 using the return_grammar_type() method. This structured approach illustrates the practical application of theoretical concepts in formal languages and automata theory. Overall, the lab provides a clear demonstration of how these concepts can be implemented in real-world scenarios.

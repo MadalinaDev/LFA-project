@@ -21,11 +21,11 @@ class Grammar:
                         return False
         return True
 
-    # return regular grammar if type 3, else invalid
+    # return regular grammar if type 3
     def return_grammar_type(self):
         if self.__check_type3():
             return "regular grammar"
-        return "invalid grammar type"
+        return "grammar type"
 
 
 class FiniteAutomaton:
@@ -34,9 +34,9 @@ class FiniteAutomaton:
         self.alphabet = alphabet
         self.initial_state = initial_state
         self.final_states = final_states
-        self.transitions = transitions  # list of dicts: {"state": , "symbol": , "to": }
+        self.transitions = transitions  # list of dicts: {state: , symbol: , to: }
 
-    # check determinism: one transition per state-symbol pair
+    # check determinism: one transition for each state + symbol combination
     def is_deterministic(self):
         seen = set()
         for t in self.transitions:

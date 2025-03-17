@@ -244,7 +244,9 @@ if __name__ == "__main__":
 ```
 
 The outputs of the problem are as follows:
+<br>
 ![alt text](image.png)
+<br>
 The screenshot depicts the output of the problem. Firstly the derived grammmar from the automata provided in variant 6 of the lab. The NFA transitions are depicted as well as the check for determistism that says that the FA is not deterministic. Then the conversion of NFA to DFA is displayed and in the end the grammar classification is assessed as regular gramamr (type 3).
 
 ## Conclusions

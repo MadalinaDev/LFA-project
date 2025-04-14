@@ -85,7 +85,11 @@ For example of input:
 ``` sin(30) + cos(45.0) - tan(1.57) + 3 + 4j - 2.5j ```
 the screenshot below ilustrates its respective output:
 <br>
-![alt text](verification.png)
+![alt text](output-result.png)
+
+One notable aspect of this lexer is its potential for extensibility and robust error management. The modular design—clearly separating the handling of different token types into dedicated functions—facilitates easy augmentation, whether that means incorporating new functions, operators, or even variable identifiers. This structure is conducive to further development stages; for example, precise error reporting could be enhanced to include line and column information, which would greatly aid debugging in more complex expressions or multi-line inputs. As the lexer processes the input stream, any unexpected characters trigger an error, thus ensuring that only valid tokens are passed to the subsequent parsing stages, which is crucial for maintaining the integrity of the syntactic analysis.
+
+Furthermore, the output of this lexer lays a solid foundation for building a full-fledged parser and interpreter. Once the expression is tokenized, a parser can utilize these tokens to construct an abstract syntax tree (AST) that captures the hierarchical structure of the arithmetic and trigonometric operations, thereby enabling deeper semantic analysis or evaluation. This design not only meets the current course objectives but also aligns with industry-standard practices for building compilers. As additional features like operator precedence, variable bindings, or function calls are introduced, the lexer can be further refined and expanded to accommodate these advanced concepts, ensuring scalability and robustness in larger, more complex language processing projects.
 
 
 ## Conclusions / Screenshots / Results

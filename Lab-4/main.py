@@ -1,5 +1,53 @@
 import itertools
 
+def split_expression(expr):
+    # split the expression into segments (supports expressions without spaces)
+    segments = []
+    i, n = 0, len(expr)
+    while i < n:
+        if expr[i].isspace():
+            i += 1
+            continue
+        if expr[i] == '(':
+            start = i
+            i += 1
+            while i < n and expr[i] != ')':
+                i += 1
+            if i >= n:
+                raise ValueError("unmatched parenthesis")
+            group = expr[start:i+1]
+            i += 1
+            suffix = ''
+            if i < n and expr[i] in '?*+':
+                suffix = expr[i]
+                i += 1
+            elif i < n and expr[i] == '^':
+                suffix = '^'
+                i += 1
+                digits = ''
+                while i < n and expr[i].isdigit():
+                    digits += expr[i]
+                    i += 1
+                suffix += digits
+            segments.append(group + suffix)
+        else:
+            seg = expr[i]
+            i += 1
+            suffix = ''
+            if i < n and expr[i] in '?*+':
+                suffix = expr[i]
+                i += 1
+            elif i < n and expr[i] == '^':
+                suffix = '^'
+                i += 1
+                digits = ''
+                while i < n and expr[i].isdigit():
+                    digits += expr[i]
+                    i += 1
+                suffix += digits
+            segments.append(seg + suffix)
+    return segments
+
 def parse_segment(segment):
     MAX_REPEAT = 5
 
@@ -30,30 +78,25 @@ def parse_segment(segment):
         n = int(suffix[1:])
         return repeat_symbol(base_symbols, n, n)
     else:
-        raise ValueError(f"Unrecognized segment suffix: {suffix}")
+        raise ValueError(f"unrecognized segment suffix: {suffix}")
 
 def expand_expression(expr):
-    segments = expr.split()
-    all_expansions = [parse_segment(seg) for seg in segments]
-    return [''.join(combo) for combo in itertools.product(*all_expansions)]
+    segments = split_expression(expr)
+    expansions = [parse_segment(seg) for seg in segments]
+    return [''.join(combo) for combo in itertools.product(*expansions)]
 
+def process_sequence(expr):
+    # show the step-by-step processing of the regex-like expression
+    segments = split_expression(expr)
+    print("processing sequence:")
+    for i, seg in enumerate(segments, 1):
+        print(f" step {i}: segment '{seg}' -> {parse_segment(seg)[:5]}{' ...' if len(parse_segment(seg)) > 5 else ''}")
+
+# demo
 if __name__ == '__main__':
-    expr1 = "M? N^2 (O|P)^3 Q* R+"
-    expr2 = "(X|Y|Z)^3 8+ (9|0)"
-    expr3 = "(H|I) (J|K) L* N?"
-
-    results1 = expand_expression(expr1)
-    results2 = expand_expression(expr2)
-    results3 = expand_expression(expr3)
-
-    print("=== Expression 1:", expr1, "===")
-    print("Number of combinations:", len(results1))
-    print("Sample 5 results:", results1[:5], "\n")
-
-    print("=== Expression 2:", expr2, "===")
-    print("Number of combinations:", len(results2))
-    print("Sample 5 results:", results2[:5], "\n")
-
-    print("=== Expression 3:", expr3, "===")
-    print("Number of combinations:", len(results3))
-    print("Sample 5 results:", results3[:5], "\n")
+    expr = "M?N^2(O|P)^3Q*R+"
+    print("expression:", expr)
+    process_sequence(expr)
+    results = expand_expression(expr)
+    print("\nnumber of combinations:", len(results))
+    print("sample 5 results:", results[:5])

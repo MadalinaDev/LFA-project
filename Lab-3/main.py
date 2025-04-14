@@ -97,9 +97,7 @@ class Lexer:
         return Token(token_type, result)
     
     def get_next_token(self):
-        """
-        this function goes through the input and returns one token at a time.
-        """
+        # this function goes through the input and returns one token at a time.
         while self.current_char is not None:
             if self.current_char.isspace():
                 self.skip_whitespace()

@@ -114,20 +114,18 @@ The solution consists of:
 5. **AST Pretty-Printer**  
    A helper walks the AST and prints each node with indentation:
 
-   ```python
+   ```
+   python
    def ast_to_string(node, indent=0):
        prefix = '  ' * indent
        if isinstance(node, Number):
            return f"{prefix}Number({node.value})"
        if isinstance(node, BinOp):
            s  = f"{prefix}BinOp({node.op.type.name})
-"
            s += ast_to_string(node.left, indent+1) + "
-"
            s += ast_to_string(node.right, indent+1)
            return s
-       …
-   ```
+       …```
 
 ## Example Run
 
@@ -147,6 +145,7 @@ BinOp(MINUS)
       Complex((0+4j))
     Number(2)
 ```
+
 
 ## Conclusions / Results
 

@@ -42,6 +42,8 @@ The solution consists of:
        EOF        = "EOF"
    ```
 
+We import enum to define TokenType and create a clear mapping of token categories. Each enum member is self-documenting, which improves code readability and maintainability. The Token class encapsulates both the token type and its raw or converted value, providing a unified object for parser consumption. Additionally, implementing __repr__ aids in debugging by giving a concise, human-readable representation of tokens.
+
 2. **Lexer with Regular Expressions**  
    We compile a single master pattern that matches every token type (using named capture groups) and advance over whitespace automatically:
 
@@ -51,7 +53,7 @@ The solution consists of:
            (TokenType.COMPLEX,    r'(?P<complex>\d+(?:\.\d+)?[jJ])'),
            (TokenType.FLOAT,      r'(?P<float>\d+\.\d+)'),
            (TokenType.INTEGER,    r'(?P<integer>\d+)'),
-           (TokenType.SIN,        r'(?P<sin>sin)'),
+           (TokenType.SIN,        r'(?P<sin>sin)'),
            …  
            (TokenType.LPAREN,     r'(?P<lparen>\()'),
            (TokenType.RPAREN,     r'(?P<rparen>\))'),
@@ -61,6 +63,8 @@ The solution consists of:
        _master_pat = re.compile('|'.join(p for _, p in _specs))
        …
    ```
+We build a single, optimized regex by OR-ing patterns, which improves lexing performance by minimizing backtracking. Named capture groups allow us to differentiate token types directly from the match object without additional string comparisons. Converting numeric strings to Python number types early simplifies downstream AST construction and evaluation. Skipping whitespace transparently keeps the lexer focused on meaningful tokens and reduces parser complexity.
+
 
 3. **AST Node Classes**  
    Each node type captures one language element:
@@ -88,6 +92,8 @@ The solution consists of:
            self.func_name, self.args = func_name, args
    ```
 
+Defining a base AST class allows uniform handling of different node types in traversal algorithms like visitors or evaluators. Each subclass encapsulates the minimal data necessary to represent language constructs, promoting single-responsibility design. By directly storing tokens in operator nodes, we preserve contextual information (like operator type) for later stages, such as type checking or code generation. This structure is easily extended to add new node types, supporting future language features or optimizations.
+
 4. **Recursive-Descent Parser**  
    The parser implements the usual grammar:
 
@@ -110,6 +116,8 @@ The solution consists of:
            return node
        …
    ```
+
+The parser implements the grammar rules using one function per nonterminal. It enforces operator precedence by the order of calls (expr → term → factor):
 
 5. **AST Pretty-Printer**  
    A helper walks the AST and prints each node with indentation:

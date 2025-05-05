@@ -1,6 +1,6 @@
 # Converting a Context-Free Grammar to Chomsky Normal Form
 
-### Course: Formal Languages & Finite Automata
+### Course: Formal Languages & Finite Automata  
 ### Author: Madalina Chirpicinic, FAF-233
 
 ----
@@ -20,130 +20,220 @@ Chomsky Normal Form (CNF) is a restricted grammar form in which every production
 
 The implementation centers around the `Grammar` class, which stores nonterminals, terminals, productions, and the start symbol. Productions are held as a dictionary mapping each nonterminal to a set of right-hand-side tuples. The method `to_cnf()` orchestrates the following steps:
 
-1. **Eliminate ε-productions**: computes nullable nonterminals and regenerates productions without ε.  
-2. **Eliminate unit productions**: removes rules of the form A → B by closure over unit pairs.  
-3. **Remove useless symbols**: discards non-generating and unreachable symbols.  
-4. **Terminal lifting**: replaces terminals in long productions with fresh nonterminals.  
-5. **Binarization**: splits productions with more than two symbols into binary rules using fresh nonterminals.
-
-Below, the most crucial snippets of code are listed and explained.
-
-1. Class & Constructor
+### 1. Grammar Class
 
 ```python
-from collections import defaultdict
-
 class Grammar:
-    def __init__(self, non_terminals, terminals, productions, start_symbol):
-        self.non_terminals = set(non_terminals)
-        self.terminals     = set(terminals)
-        self.start         = start_symbol
-        # map each nonterminal → set of RHS-tuples
-        self.productions   = defaultdict(set)
-        for A, rhss in productions.items():
-            for rhs in rhss:
-                self.productions[A].add(tuple(rhs))
-        self._fresh_id = 1  # for generating X1, X2, ...
+    def __init__(self, non_terminals=None, terminals=None, productions=None, start_symbol=None):
+        self.non_terminals = non_terminals if non_terminals else set()
+        self.terminals     = terminals if terminals else set()
+        self.productions   = productions if productions else {}
+        self.start_symbol  = start_symbol
+
+    def add_production(self, non_terminal, production):
+        if non_terminal not in self.productions:
+            self.productions[non_terminal] = []
+        if production not in self.productions[non_terminal]:
+            self.productions[non_terminal].append(production)
+
+    def __str__(self):
+        result = "Grammar:\n"
+        result += f"Non-terminals: {', '.join(sorted(self.non_terminals))}\n"
+        result += f"Terminals: {', '.join(sorted(self.terminals))}\n"
+        result += f"Start symbol: {self.start_symbol}\n"
+        result += "Productions:\n"
+        for nt in sorted(self.productions):
+            prods = self.productions[nt]
+            result += f"  {nt} -> {' | '.join(prods)}\n"
+        return result
 ```
 
-*Explanation:* Initializes grammar components and normalizes RHSs into tuples for easy deduplication.
-
-2. Eliminating ε-Productions
+### 2. CNFConverter Initialization & Fresh Nonterminal Generation
 
 ```python
-def _remove_epsilon(self):
-    # 1. Find nullable nonterminals
+class CNFConverter:
+    def __init__(self, grammar):
+        self.grammar = grammar
+        self.new_non_terminal_index = 0
+
+    def generate_new_non_terminal(self):
+        while True:
+            new_nt = f"X{self.new_non_terminal_index}"
+            self.new_non_terminal_index += 1
+            if new_nt not in self.grammar.non_terminals:
+                return new_nt
+```
+
+### 3. Eliminating ε-Productions
+
+```python
+def eliminate_epsilon_productions(self):
     nullable = set()
+    for nt, prods in self.grammar.productions.items():
+        if "" in prods:
+            nullable.add(nt)
     changed = True
     while changed:
         changed = False
-        for A, rhss in self.productions.items():
-            for rhs in rhss:
-                if not rhs or all(sym in nullable for sym in rhs):
-                    nullable.add(A)
-                    changed = True
+        for nt, prods in self.grammar.productions.items():
+            if nt not in nullable:
+                for prod in prods:
+                    if all(sym in nullable for sym in prod):
+                        nullable.add(nt)
+                        changed = True
+                        break
 
-    # 2. Rebuild productions without ε
-    new_prods = defaultdict(set)
-    from itertools import product
-    for A, rhss in self.productions.items():
-        for rhs in rhss:
-            if not rhs:
+    new_grammar = Grammar(
+        non_terminals=self.grammar.non_terminals.copy(),
+        terminals=self.grammar.terminals.copy(),
+        start_symbol=self.grammar.start_symbol
+    )
+
+    for nt, prods in self.grammar.productions.items():
+        for prod in prods:
+            if prod == "":
+                if nt == self.grammar.start_symbol:
+                    new_grammar.add_production(nt, "")
                 continue
-            choices = [
-                [sym, None] if sym in nullable else [sym]
-                for sym in rhs
-            ]
-            for combo in product(*choices):
-                new_rhs = tuple(s for s in combo if s)
-                new_prods[A].add(new_rhs or ())
-    self.productions = new_prods
+            new_grammar.add_production(nt, prod)
+            nullable_positions = [i for i, sym in enumerate(prod) if sym in nullable]
+            for mask in range(1, 1 << len(nullable_positions)):
+                rm = [nullable_positions[i] for i in range(len(nullable_positions)) if mask & (1 << i)]
+                new_prod = "".join(prod[i] for i in range(len(prod)) if i not in rm)
+                if new_prod or nt == self.grammar.start_symbol:
+                    new_grammar.add_production(nt, new_prod)
+    self.grammar = new_grammar
+    return new_grammar
 ```
 
-*Explanation:* Computes all nullable symbols, then for each production builds every variant omitting nullable occurrences to remove ε-rules.
-
-3. Lifting Terminals to Single Nonterminals
+### 4. Eliminating Unit Productions
 
 ```python
-def _terminals_to_nonterminals(self):
-    mapping = {}
-    new_prods = defaultdict(set)
-    for A, rhss in self.productions.items():
-        for rhs in rhss:
-            if len(rhs) > 1:
-                new_rhs = []
-                for sym in rhs:
-                    if sym in self.terminals:
-                        if sym not in mapping:
-                            X = self._fresh_nonterminal()
-                            mapping[sym] = X
-                            self.non_terminals.add(X)
-                            new_prods[X].add((sym,))
-                        new_rhs.append(mapping[sym])
-                    else:
-                        new_rhs.append(sym)
-                new_prods[A].add(tuple(new_rhs))
-            else:
-                new_prods[A].add(rhs)
-    self.productions = new_prods
+def eliminate_unit_productions(self):
+    unit_pairs = {nt: {nt} for nt in self.grammar.non_terminals}
+    changed = True
+    while changed:
+        changed = False
+        for nt in self.grammar.non_terminals:
+            for prod in self.grammar.productions.get(nt, []):
+                if len(prod) == 1 and prod in self.grammar.non_terminals:
+                    for b in unit_pairs[prod]:
+                        if b not in unit_pairs[nt]:
+                            unit_pairs[nt].add(b)
+                            changed = True
+
+    new_grammar = Grammar(
+        non_terminals=self.grammar.non_terminals.copy(),
+        terminals=self.grammar.terminals.copy(),
+        start_symbol=self.grammar.start_symbol
+    )
+    for A, bs in unit_pairs.items():
+        for B in bs:
+            for prod in self.grammar.productions.get(B, []):
+                if not (len(prod) == 1 and prod in self.grammar.non_terminals):
+                    new_grammar.add_production(A, prod)
+
+    self.grammar = new_grammar
+    return new_grammar
 ```
 
-*Explanation:* Ensures that in any RHS of length >1, terminals are replaced by fresh nonterminals producing that terminal.
-
-4. Binarization of Long Rules
+### 5. Removing Non-Productive & Inaccessible Symbols
 
 ```python
-def _binarize(self):
-    new_prods = defaultdict(set)
-    for A, rhss in self.productions.items():
-        for rhs in rhss:
-            if len(rhs) <= 2:
-                new_prods[A].add(rhs)
+def eliminate_non_productive_symbols(self):
+    productive = set(self.grammar.terminals)
+    changed = True
+    while changed:
+        changed = False
+        for nt, prods in self.grammar.productions.items():
+            if nt not in productive:
+                for prod in prods:
+                    if all(sym in productive for sym in prod):
+                        productive.add(nt)
+                        changed = True
+                        break
+    new_grammar = Grammar(
+        non_terminals=self.grammar.non_terminals.intersection(productive),
+        terminals=self.grammar.terminals.copy(),
+        start_symbol=self.grammar.start_symbol if self.grammar.start_symbol in productive else None
+    )
+    for nt in new_grammar.non_terminals:
+        for prod in self.grammar.productions[nt]:
+            if all(sym in productive for sym in prod):
+                new_grammar.add_production(nt, prod)
+    self.grammar = new_grammar
+    return new_grammar
+
+def eliminate_inaccessible_symbols(self):
+    accessible = {self.grammar.start_symbol}
+    changed = True
+    while changed:
+        changed = False
+        for nt in list(accessible):
+            for prod in self.grammar.productions.get(nt, []):
+                for sym in prod:
+                    if sym not in accessible:
+                        accessible.add(sym)
+                        changed = True
+    new_grammar = Grammar(
+        non_terminals=self.grammar.non_terminals.intersection(accessible),
+        terminals=self.grammar.terminals.intersection(accessible),
+        start_symbol=self.grammar.start_symbol
+    )
+    for nt in new_grammar.non_terminals:
+        for prod in self.grammar.productions.get(nt, []):
+            if all(sym in accessible for sym in prod):
+                new_grammar.add_production(nt, prod)
+    self.grammar = new_grammar
+    return new_grammar
+```
+
+### 6. Final CNF Conversion (`convert_to_cnf`)
+
+```python
+def convert_to_cnf(self):
+    self.eliminate_epsilon_productions()
+    self.eliminate_unit_productions()
+    self.eliminate_non_productive_symbols()
+    self.eliminate_inaccessible_symbols()
+
+    new_grammar = Grammar(
+        non_terminals=self.grammar.non_terminals.copy(),
+        terminals=self.grammar.terminals.copy(),
+        start_symbol=self.grammar.start_symbol
+    )
+    terminal_to_nt = {}
+    for t in self.grammar.terminals:
+        X = self.generate_new_non_terminal()
+        new_grammar.non_terminals.add(X)
+        new_grammar.add_production(X, t)
+        terminal_to_nt[t] = X
+
+    for A, prods in self.grammar.productions.items():
+        for prod in prods:
+            if prod == "" and A == self.grammar.start_symbol:
+                new_grammar.add_production(A, "")
+            elif len(prod) == 1 and prod in self.grammar.terminals:
+                new_grammar.add_production(A, prod)
             else:
-                symbols = list(rhs)
-                prev = A
+                symbols = [terminal_to_nt[s] if s in self.grammar.terminals else s for s in prod]
                 while len(symbols) > 2:
-                    first, *rest = symbols
-                    X = self._fresh_nonterminal()
-                    self.non_terminals.add(X)
-                    new_prods[prev].add((first, X))
-                    symbols = rest
-                    prev = X
-                new_prods[prev].add(tuple(symbols))
-    self.productions = new_prods
+                    X = self.generate_new_non_terminal()
+                    new_grammar.non_terminals.add(X)
+                    first, second, *rest = symbols
+                    new_grammar.add_production(A, first + X)
+                    symbols = [second] + rest
+                new_grammar.add_production(A, "".join(symbols))
+    self.grammar = new_grammar
+    return new_grammar
 ```
 
-*Explanation:* Splits any RHS longer than two symbols into a chain of binary productions using new nonterminals.
-
----
-
-## Conclusions / Screenshots / Results
+----
+## Conclusions
 
 After calling `to_cnf()`, the Variant 6 grammar has only productions of the form `A → B C` or `A → a`. All ε-productions, unit productions, and useless symbols are removed, and any longer rules are binarized. This fully satisfies CNF requirements and enables algorithms like CYK. The Grammar class successfully transforms any context-free grammar into CNF. Each step is modular, testable, and documented—enabling future extensions (e.g., keeping track of positions for error reporting). This implementation can be integrated into a larger parser or used as a standalone preprocessing tool for CYK parsing.
 
----
-
+----
 ## References
 
-1. “Chomsky normal form,” *Wikipedia*:  
-   https://en.wikipedia.org/wiki/Chomsky_normal_form  
+1. [Chomsky Normal Form – Wikipedia](https://en.wikipedia.org/wiki/Chomsky_normal_form)

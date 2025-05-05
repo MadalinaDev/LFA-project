@@ -22,6 +22,7 @@ The implementation centers around the `Grammar` class, which stores nonterminals
 
 ### 1. Grammar Class
 
+This class encapsulates the basic structure of a context-free grammar by storing its sets of nonterminals, terminals, productions, and start symbol. The constructor allows optional passing of each component, defaulting to empty collections if none are provided. The add_production method safely appends a new right-hand side to a nonterminal while avoiding duplicates and initializing the list when needed. Finally, the __str__ override neatly formats the grammar for human‐readable printing, listing symbols and productions in sorted order.
 ```python
 class Grammar:
     def __init__(self, non_terminals=None, terminals=None, productions=None, start_symbol=None):
@@ -49,6 +50,7 @@ class Grammar:
 ```
 
 ### 2. CNFConverter Initialization & Fresh Nonterminal Generation
+The CNFConverter holds a reference to the target Grammar instance and maintains a counter for generating fresh nonterminal names. Its generate_new_non_terminal method loops until it finds an unused symbol of the form X0, X1, etc., ensuring we never collide with existing grammar symbols. Incrementing the index on each trial guarantees progress, and checking membership against grammar.non_terminals prevents duplicates. This mechanism underpins later steps when we need “helper” nonterminals during CNF transformation.
 
 ```python
 class CNFConverter:
@@ -65,6 +67,7 @@ class CNFConverter:
 ```
 
 ### 3. Eliminating ε-Productions
+This method first collects all nonterminals that can derive the empty string by scanning for explicit "" productions and then closing that set transitively. It then rebuilds a new grammar by, for each original production, generating all variants where nullable symbols are optionally omitted (via bit-masking over their positions). If omitting every symbol yields the empty string and the nonterminal is the start symbol, we reintroduce its ε rule to preserve language. The result is a grammar with no ε-productions except possibly S → ε.
 
 ```python
 def eliminate_epsilon_productions(self):
@@ -107,6 +110,7 @@ def eliminate_epsilon_productions(self):
 ```
 
 ### 4. Eliminating Unit Productions
+Here we compute the reflexive‐transitive closure of unit pairs (A → B) by repeatedly adding pairs whenever a unit production is discovered. Once we know all A ⇒* B via only single‐symbol expansions, we rebuild the grammar: for each A, we include every non-unit production of every B in its closure set. This effectively removes direct and indirect unit rules while preserving derivations that used them. The new grammar contains no rules of the form A → B.
 
 ```python
 def eliminate_unit_productions(self):
@@ -189,6 +193,7 @@ def eliminate_inaccessible_symbols(self):
 ```
 
 ### 6. Final CNF Conversion (`convert_to_cnf`)
+This orchestration method runs the ε-elimination, unit-elimination, and pruning steps in sequence, then performs the two CNF‐specific transforms: first, introducing fresh nonterminals for every terminal that appears in a longer production; second, binarizing any production whose right-hand side exceeds two symbols by breaking it into a chain of binary rules. We maintain a terminal_to_nt map to ensure each terminal is replaced consistently, and generate new nonterminals as needed to carry off the extra symbols. The final grammar only has rules of the form A → BC, A → a, or optionally S → ε, satisfying the strict CNF requirements.
 
 ```python
 def convert_to_cnf(self):

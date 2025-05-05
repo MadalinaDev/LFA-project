@@ -198,6 +198,8 @@ class CNFConverter:
         return new_grammar
 
 def main():
+    # Variant 6
+    
     grammar = Grammar(
         non_terminals={'S','A','B','C','E'},
         terminals={'a', 'b'},
@@ -210,6 +212,7 @@ def main():
         },
         start_symbol='S'
     )
+
     print("Original Grammar:")
     print(grammar)
     converter = CNFConverter(grammar)
@@ -219,3 +222,19 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# Variant 1
+# grammar = Grammar(
+#         non_terminals={'S','A','B','C','D', 'E'},
+#         terminals={'a', 'b'},
+#         productions={
+#            'S': ['aB',  'AC'],
+#             'A': ['a',   'ASC',  'BC', 'aD'],
+#             'B': ['b',   'bS'],
+#             'C': ['',    'BA'], 
+#             'E': ['aB'],
+#            'D': ['abC'],
+#         },
+#         start_symbol='S'
+#     )
